@@ -1,0 +1,22 @@
+common --enable_bzlmod
+build --incompatible_enable_cc_toolchain_resolution
+build --incompatible_strict_action_env
+build --enable_runfiles
+build --enable_platform_specific_config
+
+# Required by Meson on Windows
+build:windows --action_env=PROCESSOR_ARCHITECTURE
+build:windows --action_env=USERPROFILE
+
+# Required when using the built meson toolchain on windows
+build:windows --nobuild_python_zip
+
+# Required by Meson and built pkg-config on Windows
+build:windows --enable_runfiles
+
+# These are required otherwise paths are too long
+startup --windows_enable_symlinks
+build:windows --action_env=MSYS=winsymlinks:nativestrict
+test:windows --action_env=MSYS=winsymlinks:nativestrict
+
+try-import %workspace%/user.bazelrc

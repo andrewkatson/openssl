@@ -1,0 +1,11 @@
+module(
+    name = "openssl.test",
+)
+
+local_path_override(
+    module_name = "openssl",
+    path = ".."
+)
+
+bazel_dep(name = "openssl")
+
