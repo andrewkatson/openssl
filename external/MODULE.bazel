@@ -1,11 +1,9 @@
 module(
-    name = "openssl.test",
+    name = "external",
 )
 
 local_path_override(
     module_name = "openssl",
-    path = ".."
+    path = "..",
 )
-
 bazel_dep(name = "openssl")
-

@@ -1,186 +1,63 @@
-"""An openssl build file based on a snippet found in the github issue:
-https://github.com/bazelbuild/rules_foreign_cc/issues/337
-
-Note that the $(PERL) "make variable" (https://docs.bazel.build/versions/main/be/make-variables.html)
-is populated by the perl toolchain provided by rules_perl.
-"""
-
-# Read https://wiki.openssl.org/index.php/Compilation_and_Installation
-# See https://github.com/bazelbuild/rules_foreign_cc/tree/main/examples/third_party/openssl
-
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@rules_cc//cc:defs.bzl", "cc_test")
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make", "configure_make_variant", "runnable_binary")
-
-exports_files(
-    [
-        "BUILD.openssl.bazel",
-    ],
-    visibility = ["//visibility:public"],
+genrule(
+    name = "modify_configure",
+    srcs = ["Configure"],
+    outs = ["Configure_modified"],
+    cmd_bash = "sed -e 's#external/perl/MODULES.txt#external/external~/perl/MODULES.txt#' -e 's#die \"[*]\\{5\\} Unsupported options:#warn \"***** Unsupported options:#' -e 's#configdata[.]pm#configdata_modified.pm#' $(location Configure) > $@",
+    cmd_ps = "(Get-Content $(location Configure)) -replace 'external/perl/MODULES.txt', 'external/external~/perl/MODULES.txt' -replace 'die \"[*]\\{5\\} Unsupported options:', 'warn \"***** Unsupported options:' -replace 'configdata.pm', 'configdata_modified.pm' | Set-Content $@",
+    executable = True,
 )
 
-cc_test(
-    name = "openssl_test",
-    srcs = ["openssl_test.cc"],
-    linkopts = select({
-        "@platforms//os:windows": [
-            "advapi32.lib",
-            "user32.lib",
-        ],
-        "//conditions:default": [],
+genrule(
+    name = "modify_configdata",
+    srcs = ["configdata.pm.in"],
+    outs = ["configdata_modified.pm.in"],
+    cmd_bash = "sed -e \"s#sourcefile('external', 'perl', 'MODULES.txt#sourcefile('external', 'external~', 'perl', 'MODULES.txt#\" -e \"s#Configure#Configure_modified#\" $(location configdata.pm.in) > $@",
+    cmd_ps = "(Get-Content $(location configdata.pm.in)) -replace \"sourcefile('external', 'perl', 'MODULES.txt\", \"sourcefile('external', 'external~', 'perl', 'MODULES.txt\" -replace \"Configure\", \"Configure_modified\" | Set-Content $@",
+    executable = True,
+)
+
+genrule(
+    name = "modify_config",
+    srcs = ["config"],
+    outs = ["config_modified"],
+    cmd_bash = "sed -e \"s#Configure#Configure_modified#\" $(location config) > $@",
+    cmd_ps = "(Get-Content $(location config)) -replcae \"Configure\", \"Configure_modified\" | Set-Content $@",
+)
+
+genrule(
+    name = "modify_dofile",
+    srcs = ["util/dofile.pl"],
+    outs = ["util/dofile_modified.pl"],
+    cmd_bash = "sed -e \"s#external/perl/MODULES.txt#external/external~/perl/MODULES.txt#\"",
+    cmd_ps = "(Get-Content $(location Configure)) -replace 'external/perl/MODULES.txt', 'external/external~/perl/MODULES.txt' | Set-Content $@",
+)
+
+sh_binary(
+    name = "make_openssl",
+    srcs = select({
+        "@platforms//os:windows": ["run_build_windows.sh"],
+        "@platforms//os:macos": ["run_build.sh"],
+        "//conditions:default": ["run_build.sh"],
     }),
-    deps = ["@openssl"],
-)
-
-build_test(
-    name = "build_test",
-    targets = [
-        "@openssl//:openssl",
-        "@openssl//:runnable_openssl",
-    ],
-    visibility = ["//:__pkg__"],
-)
-
-sh_test(
-    name = "openssl_launch_test",
-    srcs = ["openssl_test.sh"],
-    data = ["@openssl//:runnable_openssl"],
+    data = [
+        ":modify_config",
+        ":modify_configdata",
+        ":modify_configure",
+        ":modify_dofile",
+        "@external",
+    ] + glob([
+        "**/*.pm",
+        "**/*.dat",
+        "Configurations/*",
+        "util/**/*",
+        "**/build.info",
+        "**/*.in",
+        "**/*.h",
+        "**/*.c",
+        "**/*.S",
+        "**/*.pl",
+    ]),
     env = {
-        "OPENSSL": "$(rootpath @openssl//:runnable_openssl)",
+        "PERL5LIB": "external/external~/perl/Text-Template-1.56/lib",
     },
-)
-
-test_suite(
-    name = "openssl_test_suite",
-    tests = [
-        ":build_test",
-        ":openssl_launch_test",
-        ":openssl_test",
-    ],
-    visibility = ["//:__pkg__"],
-)
-
-filegroup(
-    name = "all_srcs",
-    srcs = glob(
-        include = ["**"],
-        exclude = [
-            "*.bazel",
-            "bazel-*/*",
-            "**/external/**/*",
-        ],
-    ),
-)
-
-CONFIGURE_OPTIONS = [
-    "no-comp",
-    "no-idea",
-    "no-weak-ssl-ciphers",
-]
-
-LIB_NAME = "openssl"
-
-MAKE_TARGETS = [
-    "build_programs",
-    "install_sw",
-]
-
-config_setting(
-    name = "msvc_compiler",
-    flag_values = {
-        "@bazel_tools//tools/cpp:compiler": "msvc-cl",
-    },
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "openssl",
-    actual = select({
-        ":msvc_compiler": "openssl_msvc",
-        "//conditions:default": "openssl_default",
-    }),
-    visibility = ["//visibility:public"],
-)
-
-configure_make_variant(
-    name = "openssl_msvc",
-    build_data = [
-        "@nasm//:nasm",
-    ],
-    configure_command = "Configure",
-    configure_in_place = True,
-    configure_options = CONFIGURE_OPTIONS + [
-        "VC-WIN64A",
-        # Unset Microsoft Assembler (MASM) flags set by built-in MSVC toolchain,
-        # as NASM is unsed to build OpenSSL rather than MASM
-        "ASFLAGS=\" \"",
-    ],
-    configure_prefix = "$$PERL",
-    env = {
-        # The Zi flag must be set otherwise OpenSSL fails to build due to missing .pdb files
-        "CFLAGS": "-Zi",
-        "PATH": "$$(dirname $(execpath @nasm//:nasm))",
-        "PERL": "$$EXT_BUILD_ROOT$$/$(PERL)",
-    },
-    lib_name = LIB_NAME,
-    lib_source = ":all_srcs",
-    out_binaries = ["openssl.exe"],
-    out_interface_libs = [
-        "libssl.lib",
-        "libcrypto.lib",
-    ],
-    out_shared_libs = [
-        "libssl-1_1-x64.dll",
-        "libcrypto-1_1-x64.dll",
-    ],
-    targets = MAKE_TARGETS,
-    toolchain = "@rules_foreign_cc//toolchains:preinstalled_nmake_toolchain",
-    toolchains = ["@rules_perl//:current_toolchain"],
-)
-
-configure_make(
-    name = "openssl_default",
-    configure_command = "config",
-    configure_in_place = True,
-    configure_options = CONFIGURE_OPTIONS,
-    env = select({
-        "@platforms//os:macos": {
-            "AR": "",
-            "PERL": "$$EXT_BUILD_ROOT$$/$(PERL)",
-        },
-        "//conditions:default": {
-            "PERL": "$$EXT_BUILD_ROOT$$/$(PERL)",
-        },
-    }),
-    lib_name = LIB_NAME,
-    lib_source = ":all_srcs",
-    out_binaries = ["openssl"],
-    # Note that for Linux builds, libssl must come before libcrypto on the linker command-line.
-    # As such, libssl must be listed before libcrypto
-    out_shared_libs = select({
-        "@platforms//os:macos": [
-            "libssl.3.3.dylib",
-            "libcrypto.3.3.dylib",
-        ],
-        "//conditions:default": [
-            "libssl.so.3.3",
-            "libcrypto.so.3.3",
-        ],
-    }),
-    targets = MAKE_TARGETS,
-    toolchains = ["@rules_perl//:current_toolchain"],
-)
-
-filegroup(
-    name = "gen_dir",
-    srcs = [":openssl"],
-    output_group = "gen_dir",
-    visibility = ["//visibility:public"],
-)
-
-runnable_binary(
-    name = "runnable_openssl",
-    binary = "openssl",
-    foreign_cc_target = "@openssl//:openssl",
-    visibility = ["//visibility:public"],
 )
