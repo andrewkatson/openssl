@@ -83,7 +83,7 @@ cc_binary(
     name = "openssl",
     srcs = select({
         "@platforms//os:windows": glob(["**/openssl.exe"]),
-        "//conditions:default": glob(["**/openssl"]),
+        "//conditions:default": ["openssl"],
     }),
     data = [":make_openssl"],
     includes = ["include"],
