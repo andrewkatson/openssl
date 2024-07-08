@@ -28,7 +28,7 @@ genrule(
     name = "modify_dofile",
     srcs = ["util/dofile.pl"],
     outs = ["util/dofile_modified.pl"],
-    cmd_bash = "sed -e \"s#external/perl/MODULES.txt#external/external~/perl/MODULES.txt#\"",
+    cmd_bash = "sed -e \"s#external/perl/MODULES.txt#external/external~/perl/MODULES.txt#\" $(location util/dofile.pl) > $@",
     cmd_ps = "(Get-Content $(location Configure)) -replace 'external/perl/MODULES.txt', 'external/external~/perl/MODULES.txt' | Set-Content $@",
 )
 
@@ -56,8 +56,46 @@ sh_binary(
         "**/*.c",
         "**/*.S",
         "**/*.pl",
+        "**/*.inc",
+        "**/*.asn1"
     ]),
     env = {
         "PERL5LIB": "external/external~/perl/Text-Template-1.56/lib",
     },
+)
+
+cc_library(
+    name = "ssl",
+    srcs = glob(["**/libssl.a"]),
+    hdrs = glob(["**/include/**/*.h"]),
+    data = [":make_openssl"],
+    includes = ["include"],
+)
+
+cc_library(
+    name = "crypto",
+    srcs = glob(["**/libcrypto.a"]),
+    hdrs = glob(["**/include/**/*.h"]),
+    data = [":make_openssl"],
+    includes = ["include"],
+)
+
+cc_binary(
+    name = "openssl",
+    srcs = select({
+        "@platforms//os:windows": glob(["**/openssl.exe"]),
+        "//conditions:default": glob(["**/openssl"]),
+    }),
+    data = [":make_openssl"],
+    includes = ["include"],
+)
+
+sh_test(
+    name = "make_openssl_test",
+    srcs = select({
+        "@platforms//os:windows": ["run_test_windows.sh"],
+        "@platforms//os:macos": ["run_test.sh"],
+        "//conditions:default": ["run_test.sh"],
+    }),
+    data = [":make_openssl"],
 )
