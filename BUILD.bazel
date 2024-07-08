@@ -36,7 +36,6 @@ sh_binary(
     name = "make_openssl",
     srcs = select({
         "@platforms//os:windows": ["run_build_windows.sh"],
-        "@platforms//os:macos": ["run_build.sh"],
         "//conditions:default": ["run_build.sh"],
     }),
     data = [
@@ -94,7 +93,6 @@ sh_test(
     name = "make_openssl_test",
     srcs = select({
         "@platforms//os:windows": ["run_test_windows.sh"],
-        "@platforms//os:macos": ["run_test.sh"],
         "//conditions:default": ["run_test.sh"],
     }),
     data = [":make_openssl"],
