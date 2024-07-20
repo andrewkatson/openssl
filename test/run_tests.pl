@@ -132,7 +132,6 @@ foreach my $arg (@ARGV ? @ARGV : ('alltests')) {
     } else {
         warn "I don't know what '$arg' is about, ignoring...\n";
     }
-
     $initial_arg = 0;
 }
 

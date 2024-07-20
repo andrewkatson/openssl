@@ -32,40 +32,45 @@ genrule(
     cmd_ps = "(Get-Content $(location Configure)) -replace 'external/perl/MODULES.txt', 'external/external~/perl/MODULES.txt' | Set-Content $@",
 )
 
+OPENSSL_DATA = [
+    "@external",
+    "Configure",
+    "config",
+] + glob([
+    "**/*.pm",
+    "**/*.dat",
+    "Configurations/*",
+    "util/**/*",
+    "**/build.info",
+    "**/*.in",
+    "**/*.h",
+    "**/*.c",
+    "**/*.S",
+    "**/*.pl",
+    "**/*.inc",
+    "**/*.asn1",
+])
+
+OPENSSL_ENV = {
+    "PERL5LIB": "external/external~/perl/Text-Template-1.56/lib",
+}
+
 sh_binary(
     name = "make_openssl",
     srcs = select({
-        "@platforms//os:windows": ["run_build_windows.sh"],
-        "//conditions:default": ["run_build.sh"],
+        "@platforms//os:windows": ["run_windows.sh"],
+        "//conditions:default": ["run.sh"],
     }),
-    data = [
-        ":modify_config",
-        ":modify_configdata",
-        ":modify_configure",
-        ":modify_dofile",
-        "@external",
-    ] + glob([
-        "**/*.pm",
-        "**/*.dat",
-        "Configurations/*",
-        "util/**/*",
-        "**/build.info",
-        "**/*.in",
-        "**/*.h",
-        "**/*.c",
-        "**/*.S",
-        "**/*.pl",
-        "**/*.inc",
-        "**/*.asn1"
-    ]),
-    env = {
-        "PERL5LIB": "external/external~/perl/Text-Template-1.56/lib",
-    },
+    data = OPENSSL_DATA,
+    env = OPENSSL_ENV,
 )
 
 cc_library(
     name = "ssl",
-    srcs = glob(["**/libssl.a"]),
+    srcs = glob([
+        "**/libssl.a",
+        "**/libssl.lib",
+    ]),
     hdrs = glob(["**/include/**/*.h"]),
     data = [":make_openssl"],
     includes = ["include"],
@@ -73,27 +78,38 @@ cc_library(
 
 cc_library(
     name = "crypto",
-    srcs = glob(["**/libcrypto.a"]),
+    srcs = glob([
+        "**/libcrypto.a",
+        "**/libcrypto.lib",
+    ]),
     hdrs = glob(["**/include/**/*.h"]),
     data = [":make_openssl"],
     includes = ["include"],
 )
 
-cc_binary(
-    name = "openssl",
+sh_binary(
+    name = "openssl_tests",
     srcs = select({
-        "@platforms//os:windows": glob(["**/openssl.exe"]),
-        "//conditions:default": ["openssl"],
+        "@platforms//os:windows": ["run_windows.sh"],
+        "//conditions:default": ["run.sh"],
     }),
-    data = [":make_openssl"],
-    includes = ["include"],
-)
-
-sh_test(
-    name = "make_openssl_test",
-    srcs = select({
-        "@platforms//os:windows": ["run_test_windows.sh"],
-        "//conditions:default": ["run_test.sh"],
-    }),
-    data = [":make_openssl"],
+    # is_test
+    args = ["true"],
+    data = OPENSSL_DATA + glob(
+        [
+            "test/recipes/**/*",
+            "**/*.pem",
+            "**/*.cnf",
+            "**/*.csr",
+            "**/*.crt",
+            "**/*.csm",
+            "**/*.ors",
+            "**/*.pfx",
+        ],
+        exclude = [
+            "test/recipes/**/*.in",
+            "test/recipes/**/*.pl",
+        ],
+    ),
+    env = OPENSSL_ENV,
 )
