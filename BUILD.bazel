@@ -111,7 +111,10 @@ sh_binary(
             "**/*.default",
             "**/*.bin",
             "**/*.p12",
-            "**/*.sct"
+            "**/*.sct",
+            "**/*.cms",
+            "**/*.txt",
+            "**/*.msb",
         ],
         exclude = [
             "test/recipes/**/*.in",
