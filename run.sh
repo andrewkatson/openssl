@@ -3,22 +3,21 @@
 # Ensure that the script exits if any command fails
 set -e
 
-# Use single quotes for the sed commands and escape necessary characters
+# Perform sed replacements
 sed -e 's#external/perl/MODULES.txt#external/external~/perl/MODULES.txt#' \
-    -e 's#die \\"[*]\\{5\\} Unsupported options:#warn \\"***** Unsupported options:#' Configure > Configure_modified
-sed -e 's#'"'"'external'"'"', '"'"'perl'"'"', '"'"'MODULES.txt'"'"'#'"'"'external'"'"', '"'"'external~'"'"', '"'"'perl'"'"', '"'"'MODULES.txt'"'"'#' configdata.pm.in > configdata_modified.pm.in
-sed -e 's#external/perl/MODULES.txt#external/external~/perl/MODULES.txt#' util/dofile.pl > util/dofile_modified.pl
+    -e 's#die \"[*]\\{5\\} Unsupported options:#warn \"***** Unsupported options:#' Configure > Configure_tmp
+
+sed -e "s#'external', 'perl', 'MODULES.txt#'external', 'external~', 'perl', 'MODULES.txt#" configdata.pm.in > configdata.pm.in_tmp
+
+sed -e "s#external/perl/MODULES.txt#external/external~/perl/MODULES.txt#" util/dofile.pl > util/dofile.pl_tmp
 
 # Move modified files to their original names
-rm util/dofile.pl
-mv util/dofile_modified.pl util/dofile.pl
-rm configdata.pm.in
-mv configdata_modified.pm.in configdata.pm.in
-rm Configure 
-mv Configure_modified Configure
+mv util/dofile.pl_tmp util/dofile.pl
+mv configdata.pm.in_tmp configdata.pm.in
+mv Configure_tmp Configure
 
 # Run the perl Configure script and make
-perl Configure
+perl Configure no-comp no-idea no-weak-ssl-ciphers
 make
 
 # Run tests if the first argument is "true"

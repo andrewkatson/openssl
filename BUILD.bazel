@@ -105,10 +105,18 @@ sh_binary(
             "**/*.csm",
             "**/*.ors",
             "**/*.pfx",
+            "**/*.utf8",
+            "**/*.key",
+            "**/*.der",
+            "**/*.default",
+            "**/*.bin",
+            "**/*.p12",
+            "**/*.sct"
         ],
         exclude = [
             "test/recipes/**/*.in",
             "test/recipes/**/*.pl",
+            "test-runs/*"
         ],
     ),
     env = OPENSSL_ENV,

@@ -48,7 +48,7 @@ Remove-Item -Path util/dofile.pl
 # Rename the temporary file to util/dofile.pl
 Move-Item -Path util/dofile.pl_tmp -Destination util/dofile.pl
 
-perl Configure
+perl Configure no-comp no-idea no-weak-ssl-ciphers
 & nmake
 
 if ($args[0] -eq "true") {
