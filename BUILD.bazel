@@ -36,20 +36,25 @@ OPENSSL_DATA = [
     "@external",
     "Configure",
     "config",
-] + glob([
-    "**/*.pm",
-    "**/*.dat",
-    "Configurations/*",
-    "util/**/*",
-    "**/build.info",
-    "**/*.in",
-    "**/*.h",
-    "**/*.c",
-    "**/*.S",
-    "**/*.pl",
-    "**/*.inc",
-    "**/*.asn1",
-])
+] + glob(
+    [
+        "**/*.pm",
+        "**/*.dat",
+        "Configurations/*",
+        "util/**/*",
+        "**/build.info",
+        "**/*.in",
+        "**/*.h",
+        "**/*.c",
+        "**/*.S",
+        "**/*.pl",
+        "**/*.inc",
+        "**/*.asn1",
+    ],
+    exclude = [
+        "**/test-runs/**/*",
+    ],
+)
 
 OPENSSL_ENV = {
     "PERL5LIB": "external/external~/perl/Text-Template-1.56/lib",
@@ -115,11 +120,14 @@ sh_binary(
             "**/*.cms",
             "**/*.txt",
             "**/*.msb",
+            "**/*.tmpl"
         ],
         exclude = [
             "test/recipes/**/*.in",
             "test/recipes/**/*.pl",
-            "test-runs/*"
+            "**/test-runs/**/*",
+            "util/**/*.txt",
+            "Configurations/**/*",
         ],
     ),
     env = OPENSSL_ENV,

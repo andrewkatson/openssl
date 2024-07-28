@@ -1,56 +1,49 @@
 #!/usr/bin/env pwsh
 
-# Read the content of Configure
-$content = Get-Content Configure
+function Replace-StringInFile {
+    param (
+        [string]$FilePath,
+        [string]$OldString,
+        [string]$NewString
+    )
 
-# Perform the replacements
-$content = $content -replace 'external/perl/MODULES.txt', 'external/external~/perl/MODULES.txt'
-$content = $content -replace 'die \"[*]\\{5\\} Unsupported options:', 'warn \"***** Unsupported options:'
+    if (-Not (Test-Path $FilePath)) {
+        Write-Error "File not found: $FilePath"
+        return
+    }
 
-# Save the modified content to a temporary file
-Set-Content -Path Configure_tmp -Value $content
+    try {
+        # Read the file contents
+        $fileContent = Get-Content -Path $FilePath -Raw
 
-# Remove the original Configure
-Remove-Item -Path Configure
+        # Replace the old string with the new string
+        $modifiedContent = $fileContent -replace [regex]::Escape($OldString), [regex]::Escape($NewString)
 
-# Rename the temporary file to Configure
-Move-Item -Path Configure_tmp -Destination Configure
+        # Write the modified content back to the file
+        Set-Content -Path $FilePath -Value $modifiedContent
 
-# Read the content of congigdata.pm.in
-$content = Get-Content congigdata.pm.in
+        Write-Output "String replaced successfully in $FilePath"
+    } catch {
+        Write-Error "An error occurred: $_"
+    }
+}
 
-# Perform the replacements
-$content = $content -replace \"'external', 'perl', 'MODULES.txt\", \"'external', 'external~', 'perl', 'MODULES.txt\"
-
-# Save the modified content to a temporary file
-Set-Content -Path congigdata.pm.in_tmp -Value $content
-
-# Remove the original configdata.pm.in
-Remove-Item -Path congigdata.pm.in
-
-# Rename the temporary file to configdata.pm.in
-Move-Item -Path congigdata.pm.in_tmp -Destination congigdata.pm.in
+Replace-StringInFile -FilePath 'Configure' -OldString 'external/perl/MODULES.txt' -NewString 'external/external~/perl/MODULES.txt'
+Replace-StringInFile -FilePath 'Configure' -OldString 'die \"[*]\\{5\\} Unsupported options:' -NewString 'warn \"***** Unsupported options:'
 
 
+Replace-StringInFile -FilePath 'congigdata.pm.in' -OldString \"'external', 'perl', 'MODULES.txt'\" -NewString \"'external', 'external~', 'perl', 'MODULES.txt'\"
 
-# Read the content of util/dofile.pl
-$content = Get-Content util/dofile.pl
 
-# Perform the replacements
-$content = $content -replace 'external/perl/MODULES.txt', 'external/external~/perl/MODULES.txt'
+Replace-StringInFile -FilePath 'util/dofile.pl' -OldString 'external/perl/MODULES.txt' -NewString 'external/external~/perl/MODULES.txt'
 
-# Save the modified content to a temporary file
-Set-Content -Path util/dofile.pl_tmp -Value $content
-
-# Remove the original util/dofile.pl
-Remove-Item -Path util/dofile.pl
-
-# Rename the temporary file to util/dofile.pl
-Move-Item -Path util/dofile.pl_tmp -Destination util/dofile.pl
 
 perl Configure no-comp no-idea no-weak-ssl-ciphers
 & nmake
 
 if ($args[0] -eq "true") {
+
+    Replace-StringInFile -FilePath 'test/generate_ssl_tests.pl' -OldString 'external/perl/MODULES.txt' -NewString 'external/external~/perl/MODULES.txt'
+
     & nmake test
 }

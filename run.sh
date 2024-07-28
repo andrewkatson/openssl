@@ -22,5 +22,7 @@ make
 
 # Run tests if the first argument is "true"
 if [[ $1 == "true" ]]; then
+    sed -e 's#external/perl/MODULES.txt#external/external~/perl/MODULES.txt#' test/generate_ssl_tests.pl > test/generate_ssl_tests.pl_tmp
+    mv test/generate_ssl_tests.pl_tmp test/generate_ssl_tests.pl
     make test
 fi
