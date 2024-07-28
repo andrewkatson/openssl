@@ -62,13 +62,84 @@ extern "C" {
 # define OSSL_PROV_FIPS_PARAM_TLS1_PRF_EMS_CHECK "tls1-prf-ems-check"
 
 /*
+ * A boolean that determines if the runtime FIPS check for undersized MAC output
+ * is performed.
+ * This is enabled by default.
+ * Type: OSSL_PARAM_UTF8_STRING
+ */
+#define OSSL_PROV_FIPS_PARAM_NO_SHORT_MAC "no-short-mac"
+
+/*
  * A boolean that determines if truncated digests can be used with Hash and HMAC
  * DRBGs.  FIPS 140-3 IG D.R disallows such use for efficiency rather than
  * security reasons.
  * This is disabled by default.
  * Type: OSSL_PARAM_UTF8_STRING
  */
-# define OSSL_PROV_FIPS_PARAM_DRBG_TRUNC_DIGEST  "drbg-no-trunc-md"
+# define OSSL_PROV_FIPS_PARAM_DRBG_TRUNC_DIGEST "drbg-no-trunc-md"
+
+/*
+ * A boolean that determines if the runtime FIPS digest check for HKDF is
+ * performed.
+ * This is disabled by default.
+ * Type: OSSL_PARAM_UTF8_STRING
+ */
+# define OSSL_PROV_FIPS_PARAM_HKDF_DIGEST_CHECK "hkdf-digest-check"
+
+/*
+ * A boolean that determines if the runtime FIPS digest check for TLS13 KDF is
+ * performed.
+ * This is disabled by default.
+ * Type: OSSL_PARAM_UTF8_STRING
+ */
+# define OSSL_PROV_FIPS_PARAM_TLS13_KDF_DIGEST_CHECK "tls13-kdf-digest-check"
+
+/*
+ * A boolean that determines if the runtime FIPS digest check for TLS1_PRF is
+ * performed.
+ * This is disabled by default.
+ * Type: OSSL_PARAM_UTF8_STRING
+ */
+# define OSSL_PROV_FIPS_PARAM_TLS1_PRF_DIGEST_CHECK "tls1-prf-digest-check"
+
+/*
+ * A boolean that determines if the runtime FIPS digest check for SSHKDF is
+ * performed.
+ * This is disabled by default.
+ * Type: OSSL_PARAM_UTF8_STRING
+ */
+# define OSSL_PROV_FIPS_PARAM_SSHKDF_DIGEST_CHECK "sshkdf-digest-check"
+
+/*
+ * A boolean that determines if the runtime FIPS digest check for SSKDF is
+ * performed.
+ * This is disabled by default.
+ * Type: OSSL_PARAM_UTF8_STRING
+ */
+# define OSSL_PROV_FIPS_PARAM_SSKDF_DIGEST_CHECK "sskdf-digest-check"
+
+/*
+ * A boolean that determines if the runtime FIPS digest check for X963KDF is
+ * performed.
+ * This is disabled by default.
+ * Type: OSSL_PARAM_UTF8_STRING
+ */
+# define OSSL_PROV_FIPS_PARAM_X963KDF_DIGEST_CHECK "x963kdf-digest-check"
+
+/*
+ * A boolean that determines if DSA signing operations are allowed.
+ * This is disabled by default.
+ * Type: OSSL_PARAM_UTF8_STRING
+ */
+# define OSSL_PROV_FIPS_PARAM_DSA_SIGN_DISABLED "dsa-sign-disabled"
+
+/*
+ * A boolean that determines if Triple-DES encryption operations are allowed.
+ * See SP800-131A r2 for further information.
+ * This is disabled by default.
+ * Type: OSSL_PARAM_UTF8_STRING
+ */
+# define OSSL_PROV_FIPS_PARAM_TDES_ENCRYPT_DISABLED "tdes-encrypt-disabled"
 
 # ifdef __cplusplus
 }
