@@ -1,4 +1,5 @@
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load("@rules_python//python:defs.bzl", "py_binary")
 
 OPENSSL_DATA = [
     "@external",
@@ -21,7 +22,11 @@ OPENSSL_DATA = [
     ],
     exclude = [
         "**/test-runs/**/*",
-    ],
+        # We need these for Windows so it doesn't find a bunch of invalid files
+        "**/jdk/**/*",
+        "**/install/**/*",
+        "**/bazel-*/**/*"
+    ]
 )
 
 OPENSSL_ENV = {
@@ -29,39 +34,102 @@ OPENSSL_ENV = {
 }
 
 sh_binary(
-    name = "make_openssl",
+    name = "make_openssl_sh",
     srcs = select({
         "@platforms//os:windows": ["run_windows.sh"],
         "//conditions:default": ["run.sh"],
     }),
     data = OPENSSL_DATA,
     env = OPENSSL_ENV,
+    deps = select({
+        "@platforms//os:windows": ["@bazel_tools//tools/bash/runfiles"],
+        "//conditions:default": [],
+    }),
+)
+
+py_binary(
+    name = "make_openssl",
+    srcs = ["run.py"],
+    data = OPENSSL_DATA,
+    main = "run.py",
+    env = OPENSSL_ENV,
 )
 
 cc_library(
     name = "ssl",
-    srcs = glob([
-        "**/libssl.a",
-        "**/libssl.lib",
-    ]),
-    hdrs = glob(["**/include/**/*.h"]),
+    srcs = select({
+        "@platforms//os:windows": ["libssl.lib"],
+        "//conditions:default": ["libssl.a"],
+    }),
+    # We need these for Windows so it doesn't find a bunch of invalid files
+    hdrs = glob(["**/include/**/*.h"], exclude = ["**/jdk/**/*", "**/install/**/*", "**/bazel-*/**/*"]),
     data = [":make_openssl"],
     includes = ["include"],
 )
 
 cc_library(
     name = "crypto",
-    srcs = glob([
-        "**/libcrypto.a",
-        "**/libcrypto.lib",
-    ]),
-    hdrs = glob(["**/include/**/*.h"]),
+    srcs = select({
+        "@platforms//os:windows": ["libcrypto.lib"],
+        "//conditions:default": ["libcrypto.a"]
+    }),
+    # We need this for Windows so it doesn't find a bunch of invalid files
+    hdrs = glob(["**/include/**/*.h"], exclude = ["**/jdk/**/*", "**/install/**/*", "**/bazel-*/**/*"]),
     data = [":make_openssl"],
     includes = ["include"],
 )
 
-sh_binary(
+py_binary(
     name = "openssl_tests",
+    srcs = ["run.py"],
+    # is_test
+    args = ["True"],
+    main = "run.py",
+    data = OPENSSL_DATA + glob(
+        [
+            "test/recipes/**/*",
+            "**/*.pem",
+            "**/*.cnf",
+            "**/*.csr",
+            "**/*.crt",
+            "**/*.csm",
+            "**/*.ors",
+            "**/*.pfx",
+            "**/*.utf8",
+            "**/*.key",
+            "**/*.der",
+            "**/*.default",
+            "**/*.bin",
+            "**/*.p12",
+            "**/*.sct",
+            "**/*.cms",
+            "**/*.txt",
+            "**/*.msb",
+            "**/*.tmpl"
+        ],
+        exclude = [
+            "test/recipes/**/*.in",
+            "test/recipes/**/*.pl",
+            "**/test-runs/**/*",
+            "util/**/*.txt",
+            "Configurations/**/*",
+            # We need these because of it finding invalid Windows files
+            "**/install/**/*",
+            "**/server/**/*",
+            "**/bazel-*/**/*"
+        ],
+    ),
+    env = select({
+        "@platforms//os:windows":
+         # The Zi flag must be set otherwise OpenSSL fails to build due to missing .pdb files
+         dicts.add({"CFLAGS": "-Zi"}, OPENSSL_ENV),
+        "//conditions:default": OPENSSL_ENV,
+    }),
+)
+
+
+sh_binary(
+    name = "openssl_tests_sh",
     srcs = select({
         "@platforms//os:windows": ["run_windows.sh"],
         "//conditions:default": ["run.sh"],
@@ -96,6 +164,10 @@ sh_binary(
             "**/test-runs/**/*",
             "util/**/*.txt",
             "Configurations/**/*",
+            # We need these because of it finding invalid Windows files
+            "**/install/**/*",
+            "**/server/**/*",
+            "**/bazel-*/**/*"
         ],
     ),
     env = select({
@@ -103,5 +175,9 @@ sh_binary(
          # The Zi flag must be set otherwise OpenSSL fails to build due to missing .pdb files
          dicts.add({"CFLAGS": "-Zi"}, OPENSSL_ENV),
         "//conditions:default": OPENSSL_ENV,
-    })
+    }),
+    deps = select({
+        "@platforms//os:windows": ["@bazel_tools//tools/bash/runfiles"],
+        "//conditions:default": [],
+    }),
 )
