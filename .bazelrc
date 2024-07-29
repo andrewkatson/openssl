@@ -14,10 +14,18 @@ build:windows --nobuild_python_zip
 # Required by Meson and built pkg-config on Windows
 build:windows --enable_runfiles
 
+# Required to build on 
+# You'll need to download bash.exe 
+# wsl --install
+# wsl.exe --install ubuntu
+build:windows --shell_executable=C:/Windows/System32/bash.exe
+
 # These are required otherwise paths are too long
 startup --windows_enable_symlinks
+startup --output_user_root'=C:/tmp'
 build:windows --action_env=MSYS=winsymlinks:nativestrict
 test:windows --action_env=MSYS=winsymlinks:nativestrict
+
 
 # Enable CC toolchain that supports iOS from https://github.com/bazelbuild/apple_support
 build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain

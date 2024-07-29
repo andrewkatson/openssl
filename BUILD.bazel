@@ -1,36 +1,4 @@
-genrule(
-    name = "modify_configure",
-    srcs = ["Configure"],
-    outs = ["Configure_modified"],
-    cmd_bash = "sed -e 's#external/perl/MODULES.txt#external/external~/perl/MODULES.txt#' -e 's#die \"[*]\\{5\\} Unsupported options:#warn \"***** Unsupported options:#' -e 's#configdata[.]pm#configdata_modified.pm#' $(location Configure) > $@",
-    cmd_ps = "(Get-Content $(location Configure)) -replace 'external/perl/MODULES.txt', 'external/external~/perl/MODULES.txt' -replace 'die \"[*]\\{5\\} Unsupported options:', 'warn \"***** Unsupported options:' -replace 'configdata.pm', 'configdata_modified.pm' | Set-Content $@",
-    executable = True,
-)
-
-genrule(
-    name = "modify_configdata",
-    srcs = ["configdata.pm.in"],
-    outs = ["configdata_modified.pm.in"],
-    cmd_bash = "sed -e \"s#sourcefile('external', 'perl', 'MODULES.txt#sourcefile('external', 'external~', 'perl', 'MODULES.txt#\" -e \"s#Configure#Configure_modified#\" $(location configdata.pm.in) > $@",
-    cmd_ps = "(Get-Content $(location configdata.pm.in)) -replace \"sourcefile('external', 'perl', 'MODULES.txt\", \"sourcefile('external', 'external~', 'perl', 'MODULES.txt\" -replace \"Configure\", \"Configure_modified\" | Set-Content $@",
-    executable = True,
-)
-
-genrule(
-    name = "modify_config",
-    srcs = ["config"],
-    outs = ["config_modified"],
-    cmd_bash = "sed -e \"s#Configure#Configure_modified#\" $(location config) > $@",
-    cmd_ps = "(Get-Content $(location config)) -replcae \"Configure\", \"Configure_modified\" | Set-Content $@",
-)
-
-genrule(
-    name = "modify_dofile",
-    srcs = ["util/dofile.pl"],
-    outs = ["util/dofile_modified.pl"],
-    cmd_bash = "sed -e \"s#external/perl/MODULES.txt#external/external~/perl/MODULES.txt#\" $(location util/dofile.pl) > $@",
-    cmd_ps = "(Get-Content $(location Configure)) -replace 'external/perl/MODULES.txt', 'external/external~/perl/MODULES.txt' | Set-Content $@",
-)
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
 OPENSSL_DATA = [
     "@external",
@@ -130,5 +98,10 @@ sh_binary(
             "Configurations/**/*",
         ],
     ),
-    env = OPENSSL_ENV,
+    env = select({
+        "@platforms//os:windows":
+         # The Zi flag must be set otherwise OpenSSL fails to build due to missing .pdb files
+         dicts.add({"CFLAGS": "-Zi"}, OPENSSL_ENV),
+        "//conditions:default": OPENSSL_ENV,
+    })
 )

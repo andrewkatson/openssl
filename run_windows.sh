@@ -39,7 +39,9 @@ Replace-StringInFile -FilePath 'util/dofile.pl' -OldString 'external/perl/MODULE
 
 
 perl Configure no-comp no-idea no-weak-ssl-ciphers
-& nmake
+# Unset Microsoft Assembler (MASM) flags set by built-in MSVC toolchain,
+# as NASM is unsed to build OpenSSL rather than MASM
+& nmake no-comp no-idea no-weak-ssl-ciphers VC-WIN64A ASFLAGS=\"\"
 
 if ($args[0] -eq "true") {
 
