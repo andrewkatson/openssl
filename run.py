@@ -108,7 +108,7 @@ if platform.system() == "Windows":
     run_configure_and_make(
         windows_configuration_options,
         "external~override",
-        ["name"],
+        ["nmake"],
         ["nmake", "test"]
     )
 else:
