@@ -1,11 +1,14 @@
-import argparse
-import chardet
-import os
-import fileinput
-import pathlib
-import platform
 import subprocess
 import sys
+import platform
+import pathlib
+import os
+import argparse
+has_chardet = True
+try:
+    import chardet
+except ImportError:
+    has_chardet = False
 
 
 parent_dir = pathlib.Path(__file__).parent.resolve()
@@ -13,10 +16,12 @@ parent_dir = pathlib.Path(__file__).parent.resolve()
 base_configuration_options = "no-comp no-idea no-weak-ssl-ciphers"
 windows_configuration_options = f'{base_configuration_options} VC-WIN64A ASFLAGS=""'
 
-parser = argparse.ArgumentParser(description="A script that runs in different modes.")
+parser = argparse.ArgumentParser(
+    description="A script that runs in different modes.")
 
 # Define the --is_test flag
-parser.add_argument("--is_test", default=False, help="Run the script in test mode.")
+parser.add_argument("--is_test", default=False,
+                    help="Run the script in test mode.")
 
 # Parse the arguments
 args = parser.parse_args()
@@ -42,7 +47,9 @@ def replace_string_in_files(files_to_replace_in, old_string, new_string):
 
         eprint(f"Replacing {old_string} with {new_string} in {file_path}")
 
-        encoding = detect_encoding(file_path)
+        encoding = 'utf-8'
+        if has_chardet:
+            encoding = detect_encoding(file_path)
 
         eprint(f"Has encoding {encoding}")
 
@@ -61,8 +68,9 @@ def replace_string_in_files(files_to_replace_in, old_string, new_string):
 
 
 def run_configure_and_make(
-    configure_options, external_file_path, make_func, test_make_func
+    configure_options, external_file_path, make_func_command, test_make_func_command
 ):
+    os.chdir(parent_dir)
 
     replace_string_in_files(
         ["Configure", "util/dofile.pl", "test/generate_ssl_tests.pl"],
@@ -80,28 +88,33 @@ def run_configure_and_make(
         f"'external', '{external_file_path}', 'perl', 'MODULES.txt'",
     )
 
-    eprint("Running Configure")
     configure_path = os.path.join(parent_dir, "Configure")
-    os.system(f"Perl {configure_path} {configure_options}")
+    eprint(f"Running {configure_path}")
+    config_process = subprocess.Popen(
+        ["Perl", configure_path] + configure_options.split(), cwd=parent_dir)
+    config_process.wait()
     eprint("Finished running Configure")
-
+    make_func_process = None
     if args.is_test:
-        test_make_func()
+        make_func_process = subprocess.Popen(
+            test_make_func_command, cwd=parent_dir)
     else:
-        make_func()
+        make_func_process = subprocess.Popen(make_func_command, cwd=parent_dir)
+
+    make_func_process.wait()
 
 
 if platform.system() == "Windows":
     run_configure_and_make(
         windows_configuration_options,
         "external~override",
-        lambda: os.system(f"cd {parent_dir} && nmake"),
-        lambda: os.system(f"cd {parent_dir} && nmake test"),
+        ["name"],
+        ["nmake", "test"]
     )
 else:
     run_configure_and_make(
         base_configuration_options,
-        "external",
-        lambda: os.system(f"cd {parent_dir} && make"),
-        lambda: os.system(f"cd {parent_dir} && make test"),
+        "external~",
+        ["make"],
+        ["make test"],
     )
