@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 3,
-  "moduleFileHash": "b8ef44eeb0b8bef41dea370122ba043a848ad7b0f18f23e0ebb2a2a42c89f64e",
+  "moduleFileHash": "c4a8d48e41b6e000d40253e68e956151ebe2212063872be85c873f00225bff4d",
   "flags": {
     "cmdRegistries": [
       "https://bcr.bazel.build/"
@@ -27,6 +27,7 @@
       "extensionUsages": [],
       "deps": {
         "external": "external@_",
+        "nasm": "nasm@2.14.02",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
       }
@@ -43,6 +44,38 @@
         "openssl": "<root>",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
+      }
+    },
+    "nasm@2.14.02": {
+      "name": "nasm",
+      "version": "2.14.02",
+      "key": "nasm@2.14.02",
+      "repoName": "nasm",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "platforms": "platforms@0.0.8",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "name": "nasm~2.14.02",
+          "urls": [
+            "http://www.nasm.us/pub/nasm/releasebuilds/2.14.02/nasm-2.14.02.tar.gz"
+          ],
+          "integrity": "sha256-s0uuNEo/Ltk7LKe/JfHtP7EtqJ7tpgluNVH9Zq3q6fw=",
+          "strip_prefix": "nasm-2.14.02",
+          "remote_patches": {
+            "https://bcr.bazel.build/modules/nasm/2.14.02/patches/add_build_file.patch": "sha256-ATUObHn2vcp0VuaKDdiF7V1ixPBfAzUl2sjdV9jW3C4=",
+            "https://bcr.bazel.build/modules/nasm/2.14.02/patches/add_config_h.patch": "sha256-6BT5sGqwRJ9kadF7YEG1sl3Bn5i5INm0R+meqOLJuuE=",
+            "https://bcr.bazel.build/modules/nasm/2.14.02/patches/add_module_dot_bazel.patch": "sha256-OEWbgVuCPXPv90/3ULrwQRoohnavn3x7YezRbMq+Mm0="
+          },
+          "remote_patch_strip": 0
+        }
       }
     },
     "bazel_tools@_": {
@@ -172,7 +205,7 @@
         "rules_license": "rules_license@0.0.7",
         "rules_proto": "rules_proto@4.0.0",
         "rules_python": "rules_python@0.4.0",
-        "platforms": "platforms@0.0.7",
+        "platforms": "platforms@0.0.8",
         "com_google_protobuf": "protobuf@3.19.6",
         "zlib": "zlib@1.3",
         "build_bazel_apple_support": "apple_support@1.5.0",
@@ -188,8 +221,36 @@
       "toolchainsToRegister": [],
       "extensionUsages": [],
       "deps": {
-        "platforms": "platforms@0.0.7",
+        "platforms": "platforms@0.0.8",
         "bazel_tools": "bazel_tools@_"
+      }
+    },
+    "platforms@0.0.8": {
+      "name": "platforms",
+      "version": "0.0.8",
+      "key": "platforms@0.0.8",
+      "repoName": "platforms",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "rules_license": "rules_license@0.0.7",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "name": "platforms",
+          "urls": [
+            "https://github.com/bazelbuild/platforms/releases/download/0.0.8/platforms-0.0.8.tar.gz"
+          ],
+          "integrity": "sha256-gVBAZgU4ns7LbaB8vLUJ1WN6OrmiS8abEQFTE2fYnXQ=",
+          "strip_prefix": "",
+          "remote_patches": {},
+          "remote_patch_strip": 0
+        }
       }
     },
     "rules_cc@0.0.9": {
@@ -221,7 +282,7 @@
         }
       ],
       "deps": {
-        "platforms": "platforms@0.0.7",
+        "platforms": "platforms@0.0.8",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
       },
@@ -320,7 +381,7 @@
         }
       ],
       "deps": {
-        "platforms": "platforms@0.0.7",
+        "platforms": "platforms@0.0.8",
         "rules_cc": "rules_cc@0.0.9",
         "bazel_skylib": "bazel_skylib@1.3.0",
         "rules_proto": "rules_proto@4.0.0",
@@ -456,34 +517,6 @@
         }
       }
     },
-    "platforms@0.0.7": {
-      "name": "platforms",
-      "version": "0.0.7",
-      "key": "platforms@0.0.7",
-      "repoName": "platforms",
-      "executionPlatformsToRegister": [],
-      "toolchainsToRegister": [],
-      "extensionUsages": [],
-      "deps": {
-        "rules_license": "rules_license@0.0.7",
-        "bazel_tools": "bazel_tools@_",
-        "local_config_platform": "local_config_platform@_"
-      },
-      "repoSpec": {
-        "bzlFile": "@bazel_tools//tools/build_defs/repo:http.bzl",
-        "ruleClassName": "http_archive",
-        "attributes": {
-          "name": "platforms",
-          "urls": [
-            "https://github.com/bazelbuild/platforms/releases/download/0.0.7/platforms-0.0.7.tar.gz"
-          ],
-          "integrity": "sha256-OlYcmee9vpFzqmU/1Xn+hJ8djWc5V4CrR3Cx84FDHVE=",
-          "strip_prefix": "",
-          "remote_patches": {},
-          "remote_patch_strip": 0
-        }
-      }
-    },
     "protobuf@3.19.6": {
       "name": "protobuf",
       "version": "3.19.6",
@@ -531,7 +564,7 @@
       "toolchainsToRegister": [],
       "extensionUsages": [],
       "deps": {
-        "platforms": "platforms@0.0.7",
+        "platforms": "platforms@0.0.8",
         "rules_cc": "rules_cc@0.0.9",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
@@ -585,7 +618,7 @@
       ],
       "deps": {
         "bazel_skylib": "bazel_skylib@1.3.0",
-        "platforms": "platforms@0.0.7",
+        "platforms": "platforms@0.0.8",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
       },
@@ -616,7 +649,7 @@
       ],
       "extensionUsages": [],
       "deps": {
-        "platforms": "platforms@0.0.7",
+        "platforms": "platforms@0.0.8",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
       },

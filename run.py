@@ -103,7 +103,6 @@ def run_configure_and_make(
 
     make_func_process.wait()
 
-
 if platform.system() == "Windows":
     run_configure_and_make(
         windows_configuration_options,

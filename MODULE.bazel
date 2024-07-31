@@ -9,3 +9,5 @@ local_path_override(
     path = "external",
 )
 bazel_dep(name = "external")
+
+bazel_dep(name = "nasm", version = "2.14.02")
