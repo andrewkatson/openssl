@@ -83,10 +83,10 @@ cc_library(
 )
 
 py_binary(
-    name = "openssl_tests",
+    name = "run_openssl_tests",
     srcs = ["run.py"],
     # is_test
-    args = ["True"],
+    args = ["--is_test=True"],
     data = OPENSSL_DATA + glob(
         [
             "test/recipes/**/*",

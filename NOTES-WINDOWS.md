@@ -7,6 +7,7 @@ Notes for Windows platforms
  - [Native builds using MinGW](#native-builds-using-mingw)
  - [Linking native applications](#linking-native-applications)
  - [Hosted builds using Cygwin](#hosted-builds-using-cygwin)
+ - [Bazel specific instructions](#bazel-specific-instructions)
 
 There are various options to build and run OpenSSL on the Windows platforms.
 
@@ -281,3 +282,23 @@ NOTE: `make test` and normal file operations may fail in directories
 mounted as text (i.e. `mount -t c:\somewhere /home`) due to Cygwin
 stripping of carriage returns. To avoid this, ensure that a binary
 mount is used, e.g. `mount -b c:\somewhere /home`.
+
+Bazel Specific Instructions
+==========================
+You will need to have the following environment variables set with your 
+version of each of these paths. 
+
+`PATH`: 
+* C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\<version>\include
+* C:\Program Files (x86)\Windows Kits\10\bin\<version>\<architecture>
+
+`LIB`:
+* C:\Program Files (x86)\Windows Kits\10\Include\<version>\shared
+* C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\<version>\lib\<architecture>
+* C:\Program Files (x86)\Windows Kits\10\Lib\<version>\ucrt\x86
+
+`INCLUDE`:
+* C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\<version>\include
+* C:\Program Files (x86)\Windows Kits\10\Include\<version>\ucrt
+* C:\Program Files (x86)\Windows Kits\10\Include\<version>\um
+* C:\Program Files (x86)\Windows Kits\10\Include\<version>\shared
