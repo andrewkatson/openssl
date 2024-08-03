@@ -87,12 +87,6 @@ def run_configure_and_make(
         f"'external', '{external_file_path}', 'perl', 'MODULES.txt'",
     )
 
-    replace_string_in_files(
-        ["test/recipes/91-test_pkey_check.t"],
-        "data_file($f)",
-        f"'test\\recipes\91-test_pkey_check_data\\\\' . $f",
-    )
-
     configure_path = os.path.join(parent_dir, "Configure")
     eprint(f"Running {configure_path}")
     config_process = subprocess.Popen(
