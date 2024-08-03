@@ -14,7 +14,7 @@ except ImportError:
 parent_dir = pathlib.Path(__file__).parent.resolve()
 
 base_configuration_options = "no-comp no-idea no-weak-ssl-ciphers"
-windows_configuration_options = f'{base_configuration_options} VC-WIN64A ASFLAGS=""'
+windows_configuration_options = f'{base_configuration_options} ASFLAGS=""'
 
 parser = argparse.ArgumentParser(
     description="A script that runs in different modes.")
