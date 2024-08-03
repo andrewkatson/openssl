@@ -4,6 +4,7 @@ import platform
 import pathlib
 import os
 import argparse
+
 has_chardet = True
 try:
     import chardet
@@ -16,12 +17,10 @@ parent_dir = pathlib.Path(__file__).parent.resolve()
 base_configuration_options = "no-comp no-idea no-weak-ssl-ciphers"
 windows_configuration_options = f'{base_configuration_options} ASFLAGS=""'
 
-parser = argparse.ArgumentParser(
-    description="A script that runs in different modes.")
+parser = argparse.ArgumentParser(description="A script that runs in different modes.")
 
 # Define the --is_test flag
-parser.add_argument("--is_test", default=False,
-                    help="Run the script in test mode.")
+parser.add_argument("--is_test", default=False, help="Run the script in test mode.")
 
 # Parse the arguments
 args = parser.parse_args()
@@ -47,7 +46,7 @@ def replace_string_in_files(files_to_replace_in, old_string, new_string):
 
         eprint(f"Replacing {old_string} with {new_string} in {file_path}")
 
-        encoding = 'utf-8'
+        encoding = "utf-8"
         if has_chardet:
             encoding = detect_encoding(file_path)
 
@@ -88,27 +87,33 @@ def run_configure_and_make(
         f"'external', '{external_file_path}', 'perl', 'MODULES.txt'",
     )
 
+    replace_string_in_files(
+        ["test/recipes/91-test_pkey_check.t"],
+        "data_file($f)",
+        f"'test\\recipes\91-test_pkey_check_data\\\\' . $f",
+    )
+
     configure_path = os.path.join(parent_dir, "Configure")
     eprint(f"Running {configure_path}")
     config_process = subprocess.Popen(
-        ["Perl", configure_path] + configure_options.split(), cwd=parent_dir)
+        ["Perl", configure_path] + configure_options.split(), cwd=parent_dir
+    )
     config_process.wait()
     eprint("Finished running Configure")
     make_func_process = None
     if args.is_test:
-        make_func_process = subprocess.Popen(
-            test_make_func_command, cwd=parent_dir)
+        make_func_process = subprocess.Popen(test_make_func_command, cwd=parent_dir)
     else:
         make_func_process = subprocess.Popen(make_func_command, cwd=parent_dir)
 
     make_func_process.wait()
 
+
+eprint(parent_dir)
+
 if platform.system() == "Windows":
     run_configure_and_make(
-        windows_configuration_options,
-        "external~override",
-        ["nmake"],
-        ["nmake", "test"]
+        windows_configuration_options, "external~override", ["nmake"], ["nmake", "test"]
     )
 else:
     run_configure_and_make(
