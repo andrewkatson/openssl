@@ -17,10 +17,12 @@ parent_dir = pathlib.Path(__file__).parent.resolve()
 base_configuration_options = "no-comp no-idea no-weak-ssl-ciphers"
 windows_configuration_options = f'{base_configuration_options} ASFLAGS=""'
 
-parser = argparse.ArgumentParser(description="A script that runs in different modes.")
+parser = argparse.ArgumentParser(
+    description="A script that runs in different modes.")
 
 # Define the --is_test flag
-parser.add_argument("--is_test", default=False, help="Run the script in test mode.")
+parser.add_argument("--is_test", default=False,
+                    help="Run the script in test mode.")
 
 # Parse the arguments
 args = parser.parse_args()
@@ -96,7 +98,8 @@ def run_configure_and_make(
     eprint("Finished running Configure")
     make_func_process = None
     if args.is_test:
-        make_func_process = subprocess.Popen(test_make_func_command, cwd=parent_dir)
+        make_func_process = subprocess.Popen(
+            test_make_func_command, cwd=parent_dir)
     else:
         make_func_process = subprocess.Popen(make_func_command, cwd=parent_dir)
 
@@ -107,12 +110,13 @@ eprint(parent_dir)
 
 if platform.system() == "Windows":
     run_configure_and_make(
-        windows_configuration_options, "external~override", ["nmake"], ["nmake", "test"]
+        windows_configuration_options, "external~override", [
+            "nmake"], ["nmake", "test"]
     )
 else:
     run_configure_and_make(
         base_configuration_options,
         "external~",
         ["make"],
-        ["make test"],
+        ["make", "test"],
     )
