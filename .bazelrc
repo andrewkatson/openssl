@@ -15,10 +15,6 @@ build:windows --nobuild_python_zip
 # You'll need to download bash.exe 
 build:windows --shell_executable=C:/Windows/System32/bash.exe
 
-# These are required otherwise paths are too long
-startup --windows_enable_symlinks
-build:windows --symlink_prefix='C:\\tmp'
-
 # Enable CC toolchain that supports iOS from https://github.com/bazelbuild/apple_support
 build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain
 build:macos --crosstool_top=@local_config_apple_cc//:toolchain
