@@ -87,6 +87,26 @@ def run_configure_and_make(
         f"'external', '{external_file_path}', 'perl', 'MODULES.txt'",
     )
 
+    # On Windows the symlink for this data is broken so we point 
+    # the perl script to the location of the actual files.
+    if platform.system() == "Windows":
+        dir = "test/recipes/91-test_pkey_check_data"
+        symlink_dir = os.path.join(parent_dir, dir)
+
+        just_real_parent_dir = ''
+        for file in os.listdir(symlink_dir):
+            symlink = os.path.join(symlink_dir, file)
+            real_path = pathlib.Path(os.path.realpath(symlink))
+
+            just_real_parent_dir = real_path.parent.absolute()
+            break
+
+        replace_string_in_files(
+            ["test/recipes/91-test_pkey_check.t"],
+            "$f = data_file($f);",
+            f"$f = '{just_real_parent_dir}\\\\' . $f;"
+        )
+
     configure_path = os.path.join(parent_dir, "Configure")
     eprint(f"Running {configure_path}")
     config_process = subprocess.Popen(
