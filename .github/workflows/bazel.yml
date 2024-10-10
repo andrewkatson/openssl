@@ -13,5 +13,5 @@ jobs:
           - macos-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
       - run: bazelisk run :run_openssl_tests -k
