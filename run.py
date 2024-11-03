@@ -58,6 +58,9 @@ def replace_string_in_files(files_to_replace_in, old_string, new_string):
         with open(file_path, "r", encoding=encoding) as file:
             content = file.read()
 
+        if file_name == "Configure":
+            eprint(content)
+
         # Replace the old string with the new string
         modified_content = content.replace(old_string, new_string)
 
